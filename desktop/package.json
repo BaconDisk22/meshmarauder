@@ -23,7 +23,9 @@
       "style.css",
       "renderer.js",
       "package.json",
-      "usb-transport.cjs"
+      "usb-transport.cjs",
+      "tcp-transport.cjs",
+      "radio-input.cjs"
     ],
     "mac": {
       "category": "public.app-category.utilities",
