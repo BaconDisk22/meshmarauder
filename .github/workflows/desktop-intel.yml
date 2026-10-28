@@ -19,6 +19,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Confirm desktop shell is present
+        working-directory: .
+        run: |
+          test -f desktop/package.json
+          test -f desktop/main.cjs
+          test -f desktop/preload.cjs
       - name: Install dependencies
         run: npm install
       - name: JavaScript syntax and tests
