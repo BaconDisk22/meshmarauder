@@ -1,0 +1,4 @@
+const test=require('node:test');const assert=require('node:assert/strict');const fs=require('node:fs');const path=require('node:path');const here=path.resolve(__dirname,'..');function read(name){return fs.readFileSync(path.join(here,name),'utf8');}
+test('secure Electron renderer flags',()=>{const app=read('main.cjs');assert.match(app,/contextIsolation:true/);assert.match(app,/nodeIntegration:false/);assert.match(app,/sandbox:true/);});
+test('four palette options only',()=>{const html=read('index.html');for(const theme of ['neon','mocha','vibrant','dusk'])assert.match(html,new RegExp('value="'+theme+'"'));assert.equal((html.match(/<option /g)||[]).length,4);});
+test('demo is labeled and no fake connection claims',()=>{assert.match(read('index.html'),/DEMO MODE/);assert.match(read('renderer.js'),/DEMO \/ SIMULATED/);});
