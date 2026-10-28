@@ -22,7 +22,8 @@
       "index.html",
       "style.css",
       "renderer.js",
-      "package.json"
+      "package.json",
+      "usb-transport.cjs"
     ],
     "mac": {
       "category": "public.app-category.utilities",
@@ -44,5 +45,8 @@
         "NSBluetoothAlwaysUsageDescription": "Mesh Marauder connects to authorized Meshtastic radios using Bluetooth."
       }
     }
+  },
+  "dependencies": {
+    "serialport": "^12.0.0"
   }
 }

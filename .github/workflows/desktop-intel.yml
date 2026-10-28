@@ -1,0 +1,59 @@
+name: Intel Mac Desktop
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['desktop/**', '.github/workflows/desktop-intel.yml']
+  pull_request:
+    paths: ['desktop/**', '.github/workflows/desktop-intel.yml']
+permissions:
+  contents: read
+jobs:
+  desktop-intel:
+    runs-on: macos-15-intel
+    defaults:
+      run:
+        working-directory: desktop
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Confirm desktop shell is present
+        working-directory: .
+        run: |
+          test -f desktop/package.json
+          test -f desktop/main.cjs
+          test -f desktop/preload.cjs
+      - name: Install dependencies
+        run: npm install
+      - name: JavaScript syntax and tests
+        run: |
+          node --check main.cjs
+          node --check preload.cjs
+          node --check renderer.js
+          npm test
+      - name: Package Intel Mac application
+        run: npm run build:mac
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+      - name: Verify x86_64 binary and download files
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import subprocess
+          files=list(Path('dist').glob('mac*/Mesh Marauder.app/Contents/MacOS/Mesh Marauder'))
+          assert len(files)==1, f'Expected one app binary; got {files}'
+          arch=subprocess.check_output(['lipo','-archs',str(files[0])],text=True).split()
+          assert 'x86_64' in arch, f'Expected Intel x86_64: {arch}'
+          assert list(Path('dist').glob('*.dmg'))
+          assert list(Path('dist').glob('*.zip'))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mesh-marauder-macos-intel
+          path: |
+            desktop/dist/*.dmg
+            desktop/dist/*.zip
+          if-no-files-found: error
