@@ -1,0 +1,3 @@
+const test=require('node:test');const assert=require('node:assert/strict');const {BleTransport,SERVICE_UUID}=require('../ble-transport.cjs');
+test('missing native BLE adapter fails explicitly',async()=>{const ble=new BleTransport();await assert.rejects(ble.list(),/not installed/);});
+test('adapter can discover and open transport without claiming radio readiness',async()=>{const calls=[];const adapter={list:async x=>{calls.push(x);return [{id:'radio'}];},connect:async()=>{},send:async()=>{},disconnect:async()=>{}};const ble=new BleTransport({adapter});assert.equal((await ble.list())[0].id,'radio');assert.equal(calls[0].serviceUuid,SERVICE_UUID);await ble.connect('radio');assert.equal(ble.state,'transport-open');await ble.disconnect();});
