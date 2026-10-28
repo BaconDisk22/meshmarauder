@@ -1,0 +1,48 @@
+{
+  "name": "meshmarauder-desktop",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test test/*.test.cjs",
+    "build:mac": "electron-builder --mac dmg zip --x64"
+  },
+  "devDependencies": {
+    "electron": "^38.0.0",
+    "electron-builder": "^26.0.0"
+  },
+  "build": {
+    "appId": "com.bacondisk22.meshmarauder",
+    "productName": "Mesh Marauder",
+    "files": [
+      "main.cjs",
+      "preload.cjs",
+      "index.html",
+      "style.css",
+      "renderer.js",
+      "package.json"
+    ],
+    "mac": {
+      "category": "public.app-category.utilities",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "extendInfo": {
+        "NSBluetoothAlwaysUsageDescription": "Mesh Marauder connects to authorized Meshtastic radios using Bluetooth."
+      }
+    }
+  }
+}

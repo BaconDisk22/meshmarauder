@@ -1,0 +1,10 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'"><title>Mesh Marauder</title><link rel="stylesheet" href="./style.css"></head><body>
+<header class="top"><div><div class="eyebrow">MESHTASTIC OPERATIONS DESKTOP</div><h1>Mesh Marauder</h1><p class="sub">Intel Mac console — monitored connections, diagnostics and packet visibility.</p></div><span class="demo">DEMO MODE · NO RADIO CONNECTED</span></header>
+<main><section class="panel"><div class="panel-head"><h2>Connection Center</h2><label>Visual theme <select id="theme"><option value="neon">Futuristic Neons</option><option value="mocha">Mocha Mousse</option><option value="vibrant">Fun &amp; Vibrant</option><option value="dusk">Dusk</option></select></label></div><div class="cards">
+<article><h3>Wi-Fi / TCP</h3><p>Connect to a Meshtastic radio at its LAN IP, typically port 4403.</p><span class="status">Not connected</span></article>
+<article><h3>Bluetooth LE</h3><p>Discover and select an authorized nearby Meshtastic device.</p><span class="status">Not connected</span></article>
+<article><h3>USB / Serial</h3><p>Connect via a data-capable USB cable and a serial port.</p><span class="status">Not connected</span></article>
+</div><p class="note">Connection adapters are under development. These cards do not claim live connections.</p></section>
+<section class="panel"><div class="panel-head"><h2>Packet Monitor</h2><button id="toggleDemo" type="button">Generate demonstration packet</button></div><div id="packetList" role="log" aria-live="polite"><p class="empty">No packets yet. Demo packets are simulated and clearly labeled.</p></div></section>
+</main><footer>Mesh Marauder Desktop · GPL-3.0 · Original project by Dataparty LLC</footer><script src="./renderer.js"></script></body></html>
