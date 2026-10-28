@@ -1,0 +1,5 @@
+const test=require('node:test');const assert=require('node:assert/strict');const {EventEmitter}=require('node:events');const {MeshtasticSession}=require('../meshtastic-session.cjs');const {frame}=require('../meshtastic-framing.cjs');
+class FakeTransport extends EventEmitter{send(data){this.last=data;}}
+const codec={encodeWantConfig:id=>Buffer.from(String(id)),decodeFromRadio:bytes=>({configCompleteId:Number(bytes.toString())})};
+test('transport open is not ready until matching configCompleteId',async()=>{const t=new FakeTransport();const s=new MeshtasticSession(t,{codec,timeoutMs:500});const p=s.start();assert.equal(s.state,'initializing');t.emit('data',frame(Buffer.from('0')));assert.equal(s.state,'initializing');t.emit('data',frame(Buffer.from(String(s.nonce))));await p;assert.equal(s.state,'session-ready');s.close();});
+test('handshake times out without config complete',async()=>{const t=new FakeTransport();const s=new MeshtasticSession(t,{codec,timeoutMs:10});await assert.rejects(s.start(),/timed out/);assert.equal(s.state,'disconnected');});
