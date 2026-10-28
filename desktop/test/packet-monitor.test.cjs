@@ -1,0 +1,3 @@
+const test=require('node:test');const assert=require('node:assert/strict');const {PacketMonitor}=require('../packet-monitor.cjs');
+test('demo data cannot appear as live traffic',()=>{const m=new PacketMonitor();m.setMode('demo');assert.equal(m.record({summary:'sample'},{simulated:true}).simulated,true);assert.throws(()=>m.record({summary:'real'}));m.setMode('live');assert.throws(()=>m.record({summary:'fake'},{simulated:true}));});
+test('packet buffer is bounded',()=>{const m=new PacketMonitor({limit:2});m.setMode('live');for(let i=0;i<3;i++)m.record({summary:String(i)});assert.deepEqual(m.items.map(x=>x.summary),['2','1']);});
