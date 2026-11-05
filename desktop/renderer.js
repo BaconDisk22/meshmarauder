@@ -4,14 +4,18 @@ const options=['neon','mocha','vibrant','dusk'];
 function setTheme(value){const safe=options.includes(value)?value:'neon';document.body.dataset.theme=safe;theme.value=safe;localStorage.setItem('meshMarauder.theme',safe);}
 setTheme(savedTheme);
 theme.addEventListener('change',()=>setTheme(theme.value));
+let livePackets=0;
+let demoPackets=0;
+function refreshPacketStats(){document.querySelector('#livePacketCount').textContent=String(livePackets);document.querySelector('#demoPacketCount').textContent=String(demoPackets);}
 document.querySelector('#toggleDemo').addEventListener('click',()=>{
+ demoPackets++;refreshPacketStats();
  const monitor=document.querySelector('#packetList');const empty=monitor.querySelector('.empty');if(empty)empty.remove();
  const row=document.createElement('div');row.className='packet';const label=document.createElement('strong');label.textContent='DEMO / SIMULATED';row.append(label,document.createTextNode('  '+new Date().toLocaleTimeString()+' · sample mesh packet · No radio traffic'));monitor.prepend(row);applyFilter();while(monitor.children.length>200)monitor.lastChild.remove();
 });
 
 const filter=document.querySelector('#packetFilter');const clearPackets=document.querySelector('#clearPackets');const packetList=document.querySelector('#packetList');
 function applyFilter(){const term=filter.value.trim().toLowerCase();for(const item of packetList.querySelectorAll('.packet'))item.hidden=!item.textContent.toLowerCase().includes(term);}
-filter.addEventListener('input',applyFilter);clearPackets.addEventListener('click',()=>{packetList.replaceChildren();});
+filter.addEventListener('input',applyFilter);clearPackets.addEventListener('click',()=>{packetList.replaceChildren();livePackets=0;demoPackets=0;document.querySelector('#lastLivePacket').textContent='None';refreshPacketStats();});
 const connectionBanner=document.querySelector('#connectionBanner');
 const diagnosticTransport=document.querySelector('#diagnosticTransport');
 const diagnosticState=document.querySelector('#diagnosticState');
@@ -59,6 +63,7 @@ if(window.marauder?.connectTcp){
  window.marauder.onPacket?.(packet=>{
   const monitor=document.querySelector('#packetList');const empty=monitor.querySelector('.empty');if(empty)empty.remove();
   if(packet.variant==='configCompleteId')return;
+  livePackets++;document.querySelector('#lastLivePacket').textContent=new Date().toLocaleTimeString();refreshPacketStats();
   const row=document.createElement('div');row.className='packet';
   const label=document.createElement('strong');label.textContent='LIVE';
   const summary=packet.summary||packet.variant||'packet';
