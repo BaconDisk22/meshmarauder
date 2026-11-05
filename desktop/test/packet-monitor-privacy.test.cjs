@@ -1,0 +1,3 @@
+const test=require('node:test');const assert=require('node:assert/strict');const {PacketMonitor}=require('../packet-monitor.cjs');
+test('packet summaries are bounded and do not retain raw packet objects',()=>{const m=new PacketMonitor({limit:2});m.setMode('live');const raw={summary:'a'.repeat(1000),secret:'should not persist'};const item=m.record(raw);assert.equal(item.summary.length,240);assert.equal('secret' in item,false);assert.equal('secret' in m.items[0],false);});
+test('monitor clear erases retained summaries',()=>{const m=new PacketMonitor();m.setMode('live');m.record({summary:'sample'});m.clear();assert.equal(m.items.length,0);});
