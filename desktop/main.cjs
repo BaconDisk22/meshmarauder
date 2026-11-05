@@ -1,6 +1,7 @@
 const {app,BrowserWindow,ipcMain}=require('electron');
 const path=require('node:path');
 const {TcpTransport}=require('./tcp-transport.cjs');
+const {UsbTransport}=require('./usb-transport.cjs');
 const {validateTcpOptions}=require('./radio-input.cjs');
 const {MeshtasticSession}=require('./meshtastic-session.cjs');
 const {createMeshtasticCodec}=require('./meshtastic-codec.cjs');
@@ -36,6 +37,12 @@ ipcMain.handle('radio:tcp-connect',async(event,options)=>{
   await next_session.start();
   return {state:'session-ready',note:'Meshtastic configuration handshake complete; decoded packets are now live.'};
  }catch(error){teardown();throw new Error(String(error.message).slice(0,300));}
+});
+ipcMain.handle('radio:usb-list',async(event)=>{
+ const win=BrowserWindow.fromWebContents(event.sender);
+ if(!win||!win.webContents.getURL().startsWith('file://'))throw new Error('Unauthorized renderer');
+ const ports=await new UsbTransport().list();
+ return ports.filter(port=>typeof port.path==='string'&&port.path.startsWith('/dev/')).map(port=>({path:port.path,manufacturer:String(port.manufacturer||'').slice(0,100)}));
 });
 ipcMain.handle('radio:disconnect',()=>{teardown();return {state:'disconnected'};});
 app.whenReady().then(()=>{createWindow();app.on('activate',()=>{if(BrowserWindow.getAllWindows().length===0)createWindow();});});
