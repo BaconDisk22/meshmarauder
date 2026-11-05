@@ -18,7 +18,7 @@ ipcMain.handle('radio:tcp-connect',async(event,options)=>{
  if(transport)throw new Error('Disconnect the existing radio transport first');
  const safe=validateTcpOptions(options);
  const next=new TcpTransport({timeoutMs:10000});
- next.on('status',state=>{if(!win.isDestroyed())win.webContents.send('radio:status',{transport:'tcp',state});if(state==='disconnected'&&transport===next)transport=null;});
+ next.on('status',state=>{if(!win.isDestroyed())win.webContents.send('radio:status',{transport:'tcp',state});if(state==='disconnected'&&transport===next){if(session){session.close();session=null;}transport=null;}});
  next.on('error',error=>{if(!win.isDestroyed())win.webContents.send('radio:error',String(error.message).slice(0,300));});
  next.on('data',bytes=>{if(!win.isDestroyed())win.webContents.send('radio:bytes',{count:bytes.length});});
  transport=next;
