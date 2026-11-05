@@ -37,6 +37,9 @@ jobs:
         run: npm run build:mac
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+      - name: Verify packaged module manifest
+        run: |
+          node -e "const fs=require('fs');const p=require('./package.json');for(const f of ['meshtastic-codec.cjs','packet-monitor.cjs','connection-diagnostics.cjs','ble-transport.cjs']){if(!p.build.files.includes(f)||!fs.existsSync(f))throw Error('Missing packaged module '+f)}"
       - name: Verify x86_64 binary and download files
         shell: bash
         run: |

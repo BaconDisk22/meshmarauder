@@ -28,7 +28,10 @@
       "radio-input.cjs",
       "meshtastic-framing.cjs",
       "meshtastic-session.cjs",
-      "meshtastic-codec.cjs"
+      "meshtastic-codec.cjs",
+      "packet-monitor.cjs",
+      "connection-diagnostics.cjs",
+      "ble-transport.cjs"
     ],
     "mac": {
       "category": "public.app-category.utilities",
