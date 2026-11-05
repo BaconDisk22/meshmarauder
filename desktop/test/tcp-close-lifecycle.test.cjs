@@ -1,0 +1,3 @@
+const test=require('node:test');const assert=require('node:assert/strict');const {TcpTransport}=require('../tcp-transport.cjs');
+test('disconnect emits a single status transition',()=>{const transport=new TcpTransport();const statuses=[];transport.on('status',s=>statuses.push(s));transport.state='transport-open';transport.disconnect();transport.disconnect();assert.deepEqual(statuses,['disconnected']);});
+test('disconnect destroys active socket and clears reference',()=>{const transport=new TcpTransport();let destroyed=0;transport.socket={destroy(){destroyed++;}};transport.state='transport-open';transport.disconnect();assert.equal(destroyed,1);assert.equal(transport.socket,null);assert.equal(transport.state,'disconnected');});
