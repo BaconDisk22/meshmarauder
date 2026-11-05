@@ -58,6 +58,14 @@ jobs:
         run: npx electron capture-screenshot.cjs
         env:
           ELECTRON_ENABLE_LOGGING: '1'
+      - name: Validate captured screenshot (if present)
+        shell: bash
+        run: |
+          if test -f dist/screenshots/operations-overview.png; then
+            node validate-screenshot.cjs dist/screenshots/operations-overview.png
+          else
+            echo 'Screenshot not captured on this runner; no screenshot artifact will be uploaded.'
+          fi
       - name: Upload desktop screenshot if captured
         uses: actions/upload-artifact@v4
         with:
