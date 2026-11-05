@@ -1,0 +1,1 @@
+const test=require('node:test');const assert=require('node:assert/strict');const {BleTransport}=require('../ble-transport.cjs');test('Bluetooth requires an installed adapter',async()=>{const ble=new BleTransport();await assert.rejects(ble.list(),/adapter not installed/);});
