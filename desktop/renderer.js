@@ -57,6 +57,7 @@ if(window.marauder?.connectTcp){
   else statusEl.textContent=state.replace(/-/g,' ');
  });
  window.marauder.onPacket?.(packet=>{
+  observeNode(packet);
   const monitor=document.querySelector('#packetList');const empty=monitor.querySelector('.empty');if(empty)empty.remove();
   if(packet.variant==='configCompleteId')return;
   const row=document.createElement('div');row.className='packet';
@@ -111,3 +112,21 @@ function syncWorkspaceNavigation(){
 }
 window.addEventListener('hashchange',syncWorkspaceNavigation);
 syncWorkspaceNavigation();
+
+// Live-only node observations: bounded to the latest 100 unique senders.
+const observedNodes=new Map();
+function observeNode(packet){
+ if(packet?.variant!=='packet'||!packet.meta||!Number.isInteger(packet.meta.from)||packet.meta.from<=0)return;
+ const meta=packet.meta, id=meta.from>>>0, now=new Date();
+ if(observedNodes.has(id))observedNodes.delete(id);
+ observedNodes.set(id,{id,lastSeen:now.toLocaleTimeString(),snr:Number.isFinite(meta.rxSnr)?meta.rxSnr:null,rssi:Number.isFinite(meta.rxRssi)?meta.rxRssi:null,channel:Number.isInteger(meta.channel)?meta.channel:null});
+ while(observedNodes.size>100)observedNodes.delete(observedNodes.keys().next().value);
+ const list=document.querySelector('#nodeList');list.replaceChildren();
+ for(const node of [...observedNodes.values()].reverse()){
+  const row=document.createElement('div');row.className='node-row';row.setAttribute('role','listitem');
+  const name=document.createElement('strong');name.textContent='!'+node.id.toString(16).padStart(8,'0');
+  const details=document.createElement('span');details.textContent='Last packet '+node.lastSeen+' · SNR '+(node.snr===null?'N/A':node.snr+' dB')+' · RSSI '+(node.rssi===null?'N/A':node.rssi+' dBm')+' · Channel '+(node.channel===null?'N/A':node.channel);
+  row.append(name,details);list.append(row);
+ }
+ document.querySelector('#nodeCount').textContent=observedNodes.size+' observed node'+(observedNodes.size===1?'':'s');
+}
