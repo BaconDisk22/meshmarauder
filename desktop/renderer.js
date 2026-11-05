@@ -22,15 +22,29 @@ const tcpStatus=document.querySelector('#tcpStatus');
 const tcpMessage=document.querySelector('#tcpMessage');
 const tcpConnect=document.querySelector('#connectTcp');
 const tcpDisconnect=document.querySelector('#disconnectTcp');
+const usbRefresh=document.querySelector('#refreshUsb');
+const usbPorts=document.querySelector('#usbPorts');
+const usbStatus=document.querySelector('#usbStatus');
+const usbMessage=document.querySelector('#usbMessage');
+const usbConnect=document.querySelector('#connectUsb');
+const usbDisconnect=document.querySelector('#disconnectUsb');
+// One transport is active at a time; remember which so the shared session,
+// error and byte events update the right card.
+let activeTransport='tcp';
 if(window.marauder?.connectTcp){
- window.marauder.onStatus(({state})=>{updateBanner(state);tcpStatus.textContent=state==='transport-open'?'TCP socket open — handshake pending':state.replace(/-/g,' ');tcpConnect.disabled=state==='connecting'||state==='transport-open';if(state==='disconnected'){tcpConnect.disabled=false;tcpMessage.textContent='Radio disconnected. Reconnect when ready.';}});
- window.marauder.onError(message=>{tcpMessage.textContent='TCP error: '+message;});
- window.marauder.onBytes(({count})=>{tcpMessage.textContent='Received '+count+' transport bytes; awaiting Meshtastic configuration handshake.';});
+ window.marauder.onStatus(({transport,state})=>{updateBanner(state);
+  if(transport&&state!=='disconnected')activeTransport=transport;
+  if(transport==='usb'){usbStatus.textContent=state==='transport-open'?'Serial port open — handshake pending':state.replace(/-/g,' ');usbConnect.disabled=state==='connecting'||state==='transport-open';if(state==='disconnected'){usbConnect.disabled=false;usbMessage.textContent='Radio disconnected. Reconnect when ready.';}}
+  else{tcpStatus.textContent=state==='transport-open'?'TCP socket open — handshake pending':state.replace(/-/g,' ');tcpConnect.disabled=state==='connecting'||state==='transport-open';if(state==='disconnected'){tcpConnect.disabled=false;tcpMessage.textContent='Radio disconnected. Reconnect when ready.';}}
+ });
+ window.marauder.onError(message=>{(activeTransport==='usb'?usbMessage:tcpMessage).textContent='Radio error: '+message;});
+ window.marauder.onBytes(({count})=>{(activeTransport==='usb'?usbMessage:tcpMessage).textContent='Received '+count+' transport bytes; awaiting Meshtastic configuration handshake.';});
  window.marauder.onSession?.(({state})=>{updateBanner(state);
-  if(state==='initializing')tcpStatus.textContent='TCP open — Meshtastic handshake in progress';
-  else if(state==='session-ready')tcpStatus.textContent='Session ready — decoding live packets';
-  else if(state==='disconnected'){tcpStatus.textContent='Not connected';tcpConnect.disabled=false;}
-  else tcpStatus.textContent=state.replace(/-/g,' ');
+  const statusEl=activeTransport==='usb'?usbStatus:tcpStatus;
+  if(state==='initializing')statusEl.textContent='Transport open — Meshtastic handshake in progress';
+  else if(state==='session-ready')statusEl.textContent='Session ready — decoding live packets';
+  else if(state==='disconnected'){statusEl.textContent='Not connected';tcpConnect.disabled=false;usbConnect.disabled=false;}
+  else statusEl.textContent=state.replace(/-/g,' ');
  });
  window.marauder.onPacket?.(packet=>{
   const monitor=document.querySelector('#packetList');const empty=monitor.querySelector('.empty');if(empty)empty.remove();
@@ -54,18 +68,22 @@ if(window.marauder?.connectTcp){
   catch(error){updateBanner('disconnected');tcpMessage.textContent='Connection failed: '+String(error.message).slice(0,300);tcpConnect.disabled=false;}
  });
  tcpDisconnect.addEventListener('click',async()=>{try{await window.marauder.disconnect();tcpStatus.textContent='Not connected';updateBanner('disconnected');tcpMessage.textContent='Disconnected';tcpConnect.disabled=false;}catch(error){tcpMessage.textContent='Disconnect error: '+String(error.message).slice(0,300);}});
+ usbRefresh.addEventListener('click',async()=>{
+  usbRefresh.disabled=true;usbStatus.textContent='Searching for serial devices…';usbPorts.replaceChildren();
+  try{
+   const ports=await window.marauder.listUsbPorts();
+   const empty=document.createElement('option');empty.value='';empty.textContent='Select a device';usbPorts.append(empty);
+   for(const port of ports){const option=document.createElement('option');option.value=port.path;option.textContent=port.path+(port.manufacturer?' · '+port.manufacturer:'');usbPorts.append(option);}
+   usbStatus.textContent=ports.length+' serial device(s) found · Not connected';
+  }catch(error){usbStatus.textContent='Discovery failed: '+String(error.message).slice(0,160);}
+  finally{usbRefresh.disabled=false;}
+ });
+ usbConnect.addEventListener('click',async()=>{
+  const path=usbPorts.value;
+  if(!path){usbMessage.textContent='Find and select a serial device first.';return;}
+  usbConnect.disabled=true;usbMessage.textContent='Opening serial port…';
+  try{const result=await window.marauder.connectUsb({path});usbMessage.textContent=result.note;}
+  catch(error){updateBanner('disconnected');usbMessage.textContent='Connection failed: '+String(error.message).slice(0,300);usbConnect.disabled=false;}
+ });
+ usbDisconnect.addEventListener('click',async()=>{try{await window.marauder.disconnect();usbStatus.textContent='Not connected';updateBanner('disconnected');usbMessage.textContent='Disconnected';usbConnect.disabled=false;}catch(error){usbMessage.textContent='Disconnect error: '+String(error.message).slice(0,300);}});
 }
-
-const usbRefresh=document.querySelector('#refreshUsb');
-const usbPorts=document.querySelector('#usbPorts');
-const usbStatus=document.querySelector('#usbStatus');
-usbRefresh.addEventListener('click',async()=>{
- usbRefresh.disabled=true;usbStatus.textContent='Searching for serial devices…';usbPorts.replaceChildren();
- try{
-  const ports=await window.marauder.listUsbPorts();
-  const empty=document.createElement('option');empty.value='';empty.textContent='Select a device';usbPorts.append(empty);
-  for(const port of ports){const option=document.createElement('option');option.value=port.path;option.textContent=port.path+(port.manufacturer?' · '+port.manufacturer:'');usbPorts.append(option);}
-  usbStatus.textContent=ports.length+' serial device(s) found · Not connected';
- }catch(error){usbStatus.textContent='Discovery failed: '+String(error.message).slice(0,160);}
- finally{usbRefresh.disabled=false;}
-});
