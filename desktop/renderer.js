@@ -9,6 +9,9 @@ document.querySelector('#toggleDemo').addEventListener('click',()=>{
  const row=document.createElement('div');row.className='packet';const label=document.createElement('strong');label.textContent='DEMO / SIMULATED';row.append(label,document.createTextNode('  '+new Date().toLocaleTimeString()+' · sample mesh packet · No radio traffic'));monitor.prepend(row);
 });
 
+const filter=document.querySelector('#packetFilter');const clearPackets=document.querySelector('#clearPackets');const packetList=document.querySelector('#packetList');
+function applyFilter(){const term=filter.value.trim().toLowerCase();for(const item of packetList.querySelectorAll('.packet'))item.hidden=!item.textContent.toLowerCase().includes(term);}
+filter.addEventListener('input',applyFilter);clearPackets.addEventListener('click',()=>{packetList.replaceChildren();});
 const tcpStatus=document.querySelector('#tcpStatus');
 const tcpMessage=document.querySelector('#tcpMessage');
 const tcpConnect=document.querySelector('#connectTcp');
@@ -30,7 +33,7 @@ if(window.marauder?.connectTcp){
   const label=document.createElement('strong');label.textContent='LIVE';
   const summary=packet.summary||packet.variant||'packet';
   row.append(label,document.createTextNode('  '+new Date().toLocaleTimeString()+' · '+String(summary).slice(0,200)));
-  monitor.prepend(row);
+  monitor.prepend(row);applyFilter();
   while(monitor.children.length>200)monitor.lastChild.remove();
  });
  tcpConnect.addEventListener('click',async()=>{
