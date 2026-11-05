@@ -15,7 +15,8 @@ filter.addEventListener('input',applyFilter);clearPackets.addEventListener('clic
 const connectionBanner=document.querySelector('#connectionBanner');
 function updateBanner(state){
  const labels={'disconnected':'NO RADIO CONNECTED · DEMO AVAILABLE','connecting':'CONNECTING TO RADIO','transport-open':'TCP OPEN · HANDSHAKE PENDING','initializing':'TCP OPEN · HANDSHAKE PENDING','session-ready':'LIVE RADIO · SESSION READY'};
- connectionBanner.textContent=labels[state]||'RADIO NEEDS ATTENTION';
+ const transportName=activeTransport==='usb'?'USB':'TCP';
+ connectionBanner.textContent=(state==='transport-open'||state==='initializing')?transportName+' OPEN · HANDSHAKE PENDING':labels[state]||'RADIO NEEDS ATTENTION';
  connectionBanner.dataset.connectionState=state;
 }
 const tcpStatus=document.querySelector('#tcpStatus');
@@ -32,8 +33,9 @@ const usbDisconnect=document.querySelector('#disconnectUsb');
 // error and byte events update the right card.
 let activeTransport='tcp';
 if(window.marauder?.connectTcp){
- window.marauder.onStatus(({transport,state})=>{updateBanner(state);
+ window.marauder.onStatus(({transport,state})=>{
   if(transport&&state!=='disconnected')activeTransport=transport;
+  updateBanner(state);
   if(transport==='usb'){usbStatus.textContent=state==='transport-open'?'Serial port open — handshake pending':state.replace(/-/g,' ');usbConnect.disabled=state==='connecting'||state==='transport-open';if(state==='disconnected'){usbConnect.disabled=false;usbMessage.textContent='Radio disconnected. Reconnect when ready.';}}
   else{tcpStatus.textContent=state==='transport-open'?'TCP socket open — handshake pending':state.replace(/-/g,' ');tcpConnect.disabled=state==='connecting'||state==='transport-open';if(state==='disconnected'){tcpConnect.disabled=false;tcpMessage.textContent='Radio disconnected. Reconnect when ready.';}}
  });
