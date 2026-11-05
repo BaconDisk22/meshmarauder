@@ -89,3 +89,17 @@ if(window.marauder?.connectTcp){
  });
  usbDisconnect.addEventListener('click',async()=>{try{await window.marauder.disconnect();usbStatus.textContent='Not connected';updateBanner('disconnected');usbMessage.textContent='Disconnected';usbConnect.disabled=false;}catch(error){usbMessage.textContent='Disconnect error: '+String(error.message).slice(0,300);}});
 }
+
+// Keep workspace navigation synchronized with the visible section.
+const workspaceLinks=[...document.querySelectorAll('.sidebar nav a[href^="#"]')];
+function syncWorkspaceNavigation(){
+ const selected=workspaceLinks.find(link=>link.getAttribute('href')===window.location.hash)||workspaceLinks[0];
+ for(const link of workspaceLinks){
+  const active=link===selected;
+  link.classList.toggle('selected',active);
+  if(active)link.setAttribute('aria-current','location');
+  else link.removeAttribute('aria-current');
+ }
+}
+window.addEventListener('hashchange',syncWorkspaceNavigation);
+syncWorkspaceNavigation();
