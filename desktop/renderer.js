@@ -116,10 +116,10 @@ syncWorkspaceNavigation();
 // Live-only node observations: bounded to the latest 100 unique senders.
 const observedNodes=new Map();
 function observeNode(packet){
- if(packet?.variant!=='packet'||!packet.meta||!Number.isInteger(packet.meta.from)||packet.meta.from<=0)return;
+ if(packet?.variant!=='packet'||!packet.meta||!Number.isSafeInteger(packet.meta.from)||packet.meta.from<=0||packet.meta.from>0xffffffff)return;
  const meta=packet.meta, id=meta.from>>>0, now=new Date();
  if(observedNodes.has(id))observedNodes.delete(id);
- observedNodes.set(id,{id,lastSeen:now.toLocaleTimeString(),snr:Number.isFinite(meta.rxSnr)?meta.rxSnr:null,rssi:Number.isFinite(meta.rxRssi)?meta.rxRssi:null,channel:Number.isInteger(meta.channel)?meta.channel:null});
+ observedNodes.set(id,{id,lastSeen:now.toLocaleTimeString(),snr:typeof meta.rxSnr==='number'&&Number.isFinite(meta.rxSnr)?meta.rxSnr:null,rssi:typeof meta.rxRssi==='number'&&Number.isFinite(meta.rxRssi)?meta.rxRssi:null,channel:Number.isInteger(meta.channel)?meta.channel:null});
  while(observedNodes.size>100)observedNodes.delete(observedNodes.keys().next().value);
  const list=document.querySelector('#nodeList');list.replaceChildren();
  for(const node of [...observedNodes.values()].reverse()){
