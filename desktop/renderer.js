@@ -39,6 +39,12 @@ if(window.marauder?.connectTcp){
   const label=document.createElement('strong');label.textContent='LIVE';
   const summary=packet.summary||packet.variant||'packet';
   row.append(label,document.createTextNode('  '+new Date().toLocaleTimeString()+' · '+String(summary).slice(0,200)));
+  if(packet.meta&&typeof packet.meta==='object'){
+   const details=document.createElement('details');const heading=document.createElement('summary');heading.textContent='Packet metadata';details.append(heading);
+   const fields=['from','to','channel','id','rxTime','rxSnr','rxRssi','hopLimit','portnum','encrypted'];
+   for(const field of fields){const value=packet.meta[field];if(value===undefined||value===null)continue;const line=document.createElement('div');line.textContent=field+': '+String(value).slice(0,100);details.append(line);}
+   row.append(details);
+  }
   monitor.prepend(row);applyFilter();
   while(monitor.children.length>200)monitor.lastChild.remove();
  });
