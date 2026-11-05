@@ -1,0 +1,2 @@
+const test=require('node:test');const assert=require('node:assert/strict');const fs=require('node:fs');const path=require('node:path');
+test('demo packets use the same filter and bounded list as live packets',()=>{const js=fs.readFileSync(path.join(__dirname,'../renderer.js'),'utf8');const demo=js.split("document.querySelector('#toggleDemo').addEventListener")[1].split('});')[0];assert.match(demo,/monitor.prepend\(row\);applyFilter\(\)/);assert.match(demo,/while\(monitor.children.length>200\)/);});
