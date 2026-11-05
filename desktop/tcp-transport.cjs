@@ -15,7 +15,7 @@ class TcpTransport extends EventEmitter{
   socket.on('close',()=>{if(this.socket!==socket)return;this.socket=null;this.state='disconnected';this.emit('status',this.state);});
   return new Promise((resolve,reject)=>{
    let settled=false;
-   const finish=(error)=>{if(settled)return;settled=true;clearTimeout(timer);socket.off('connect',onConnect);socket.off('error',onError);if(error){socket.destroy();reject(error);}else resolve();};
+   const finish=(error)=>{if(settled)return;settled=true;clearTimeout(timer);socket.off('connect',onConnect);socket.off('error',onError);if(error){if(this.socket===socket){this.socket=null;this.state='disconnected';this.emit('status',this.state);}socket.destroy();reject(error);}else resolve();};
    const onConnect=()=>{this.state='transport-open';this.emit('status',this.state);finish();};
    const onError=error=>finish(error);
    const timer=setTimeout(()=>finish(new Error('TCP connection timed out')),this.timeoutMs);
