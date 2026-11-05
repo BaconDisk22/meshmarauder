@@ -18,3 +18,22 @@ The desktop application is a new, isolated interface for **authorized Meshtastic
 > **Important:** A connected socket or serial port is not evidence of a successful Meshtastic session. Show session readiness only after protocol handshake completes.
 
 This directory is kept independent of upstream command-line scripts. Keep GPL attribution and avoid automatically activating invasive/security-testing functions.
+
+## Intel Mac verification (development build)
+
+The desktop is experimental. Green CI does not establish that a physical Meshtastic radio was tested.
+
+1. Download the Intel Mac workflow artifact (DMG or ZIP), not a release.
+2. Open the app on an Intel x86_64 Mac and connect to an authorized Meshtastic radio over TCP (default port 4403).
+3. Verify socket-open and Meshtastic session-ready are separate states.
+4. Check LIVE packets against radio traffic; demonstration packets must be labeled DEMO / SIMULATED.
+5. Disconnect the radio unexpectedly and confirm the Connect button recovers; reconnect manually.
+6. Record macOS version, radio firmware, screenshots and errors.
+
+### Remaining release gates
+
+- Verify real radio handshake and reconnect behavior.
+- Integrate native BLE and USB desktop controls, or explicitly label unsupported transports.
+- Validate packet inspection and safe handling of private information.
+- Audit bundled dependencies, GPL-3.0 attribution, signing and notarization.
+- Obtain explicit release approval; do not publish from development PRs.
