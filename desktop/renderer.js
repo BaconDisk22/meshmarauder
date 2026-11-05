@@ -14,7 +14,7 @@ const tcpMessage=document.querySelector('#tcpMessage');
 const tcpConnect=document.querySelector('#connectTcp');
 const tcpDisconnect=document.querySelector('#disconnectTcp');
 if(window.marauder?.connectTcp){
- window.marauder.onStatus(({state})=>{tcpStatus.textContent=state==='transport-open'?'TCP socket open — handshake pending':state.replace(/-/g,' ');tcpConnect.disabled=state==='connecting'||state==='transport-open';});
+ window.marauder.onStatus(({state})=>{tcpStatus.textContent=state==='transport-open'?'TCP socket open — handshake pending':state.replace(/-/g,' ');tcpConnect.disabled=state==='connecting'||state==='transport-open';if(state==='disconnected'){tcpConnect.disabled=false;tcpMessage.textContent='Radio disconnected. Reconnect when ready.';}});
  window.marauder.onError(message=>{tcpMessage.textContent='TCP error: '+message;});
  window.marauder.onBytes(({count})=>{tcpMessage.textContent='Received '+count+' transport bytes; awaiting Meshtastic configuration handshake.';});
  window.marauder.onSession?.(({state})=>{
