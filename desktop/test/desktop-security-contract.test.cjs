@@ -1,0 +1,3 @@
+const test=require('node:test');const assert=require('node:assert/strict');const fs=require('node:fs');const path=require('node:path');const read=p=>fs.readFileSync(path.join(__dirname,'..',p),'utf8');
+test('desktop isolates renderer and requires explicit radio connections',()=>{const main=read('main.cjs');assert.match(main,/contextIsolation:true/);assert.match(main,/nodeIntegration:false/);assert.match(main,/sandbox:true/);assert.match(main,/Unauthorized renderer/);assert.match(main,/ipcMain.handle\('radio:tcp-connect'/);});
+test('HTML uses restrictive content security policy',()=>{assert.match(read('index.html'),/Content-Security-Policy/);assert.match(read('index.html'),/script-src 'self'/);});
