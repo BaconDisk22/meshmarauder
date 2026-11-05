@@ -15,7 +15,7 @@ class UsbTransport extends EventEmitter{
   this.port=port;
   port.on('data',bytes=>this.emit('data',Buffer.from(bytes)));
   port.on('error',error=>this.emit('error',error));
-  port.on('close',()=>{if(this.port===port)this.port=null;this.state='disconnected';this.emit('status',this.state);});
+  port.on('close',()=>{if(this.port!==port)return;this.port=null;if(this.state!=='disconnected'){this.state='disconnected';this.emit('status',this.state);}});
   return new Promise((resolve,reject)=>{
    let settled=false;
    const finish=error=>{if(settled)return;settled=true;clearTimeout(timer);if(error){this.port=null;port.close(()=>{});reject(error);}else{this.state='transport-open';this.emit('status',this.state);resolve();}};
@@ -24,6 +24,6 @@ class UsbTransport extends EventEmitter{
   });
  }
  send(bytes){if(!this.port||!this.port.isOpen)throw new Error('USB not connected');this.port.write(Buffer.from(bytes));}
- disconnect(){if(this.port){const port=this.port;this.port=null;if(port.isOpen)port.close(()=>{});}this.state='disconnected';}
+ disconnect(){if(this.port){const port=this.port;this.port=null;if(port.isOpen)port.close(()=>{});}if(this.state!=='disconnected'){this.state='disconnected';this.emit('status',this.state);}}
 }
 module.exports={UsbTransport};

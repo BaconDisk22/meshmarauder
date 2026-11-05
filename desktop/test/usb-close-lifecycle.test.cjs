@@ -1,0 +1,4 @@
+const test=require('node:test');const assert=require('node:assert/strict');const {EventEmitter}=require('node:events');const {UsbTransport}=require('../usb-transport.cjs');
+class FakePort extends EventEmitter{constructor(){super();this.isOpen=true;this.closes=0;}close(cb){this.closes++;this.isOpen=false;this.emit('close');cb?.();}}
+test('USB manual disconnect reports exactly one transition',()=>{const t=new UsbTransport();const p=new FakePort();t.port=p;t.state='transport-open';const statuses=[];t.on('status',s=>statuses.push(s));t.disconnect();t.disconnect();assert.equal(p.closes,1);assert.equal(t.port,null);assert.deepEqual(statuses,['disconnected']);});
+test('stale close from prior USB port cannot reset newer connection',()=>{const t=new UsbTransport();const p=new FakePort();t.port=p;t.state='transport-open';t.disconnect();t.port=new FakePort();t.state='transport-open';p.emit('close');assert.equal(t.state,'transport-open');});
