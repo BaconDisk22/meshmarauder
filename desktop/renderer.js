@@ -13,11 +13,19 @@ const filter=document.querySelector('#packetFilter');const clearPackets=document
 function applyFilter(){const term=filter.value.trim().toLowerCase();for(const item of packetList.querySelectorAll('.packet'))item.hidden=!item.textContent.toLowerCase().includes(term);}
 filter.addEventListener('input',applyFilter);clearPackets.addEventListener('click',()=>{packetList.replaceChildren();});
 const connectionBanner=document.querySelector('#connectionBanner');
+const diagnosticTransport=document.querySelector('#diagnosticTransport');
+const diagnosticState=document.querySelector('#diagnosticState');
+const diagnosticTip=document.querySelector('#diagnosticTip');
+const diagnosticError=document.querySelector('#diagnosticError');
+const diagnosticTips={'disconnected':'Choose a radio and connect over TCP or USB.','connecting':'Opening transport. Check the radio address, port or USB cable if this stalls.','transport-open':'Transport opened; waiting for the Meshtastic configuration handshake.','initializing':'Meshtastic handshake in progress. If it times out, check for another connected client.','session-ready':'Meshtastic configuration completed. Live packets can now be monitored.','needs-attention':'Check the error below, radio power, permissions and connection settings.'};
+function updateDiagnostics(state){diagnosticTransport.textContent=activeTransport.toUpperCase();diagnosticState.textContent=state.replace(/-/g,' ');diagnosticTip.textContent=diagnosticTips[state]||diagnosticTips['needs-attention'];if(state==='session-ready'||state==='connecting')diagnosticError.textContent='';}
+
 function updateBanner(state){
  const labels={'disconnected':'NO RADIO CONNECTED · DEMO AVAILABLE','connecting':'CONNECTING TO RADIO','transport-open':'TCP OPEN · HANDSHAKE PENDING','initializing':'TCP OPEN · HANDSHAKE PENDING','session-ready':'LIVE RADIO · SESSION READY'};
  const transportName=activeTransport==='usb'?'USB':'TCP';
  connectionBanner.textContent=(state==='transport-open'||state==='initializing')?transportName+' OPEN · HANDSHAKE PENDING':labels[state]||'RADIO NEEDS ATTENTION';
  connectionBanner.dataset.connectionState=state;
+ updateDiagnostics(state);
 }
 const tcpStatus=document.querySelector('#tcpStatus');
 const tcpMessage=document.querySelector('#tcpMessage');
@@ -39,7 +47,7 @@ if(window.marauder?.connectTcp){
   if(transport==='usb'){usbStatus.textContent=state==='transport-open'?'Serial port open — handshake pending':state.replace(/-/g,' ');usbConnect.disabled=state==='connecting'||state==='transport-open';if(state==='disconnected'){usbConnect.disabled=false;usbMessage.textContent='Radio disconnected. Reconnect when ready.';}}
   else{tcpStatus.textContent=state==='transport-open'?'TCP socket open — handshake pending':state.replace(/-/g,' ');tcpConnect.disabled=state==='connecting'||state==='transport-open';if(state==='disconnected'){tcpConnect.disabled=false;tcpMessage.textContent='Radio disconnected. Reconnect when ready.';}}
  });
- window.marauder.onError(message=>{(activeTransport==='usb'?usbMessage:tcpMessage).textContent='Radio error: '+message;});
+ window.marauder.onError(message=>{(activeTransport==='usb'?usbMessage:tcpMessage).textContent='Radio error: '+message;diagnosticError.textContent=String(message).slice(0,300);updateBanner('needs-attention');});
  window.marauder.onBytes(({count})=>{(activeTransport==='usb'?usbMessage:tcpMessage).textContent='Received '+count+' transport bytes; awaiting Meshtastic configuration handshake.';});
  window.marauder.onSession?.(({state})=>{updateBanner(state);
   const statusEl=activeTransport==='usb'?usbStatus:tcpStatus;
@@ -67,7 +75,7 @@ if(window.marauder?.connectTcp){
  tcpConnect.addEventListener('click',async()=>{
   tcpConnect.disabled=true;tcpMessage.textContent='Opening TCP socket…';
   try{const result=await window.marauder.connectTcp({host:document.querySelector('#tcpHost').value,port:Number(document.querySelector('#tcpPort').value)});tcpMessage.textContent=result.note;}
-  catch(error){updateBanner('disconnected');tcpMessage.textContent='Connection failed: '+String(error.message).slice(0,300);tcpConnect.disabled=false;}
+  catch(error){updateBanner('needs-attention');diagnosticError.textContent=String(error.message).slice(0,300);tcpMessage.textContent='Connection failed: '+String(error.message).slice(0,300);tcpConnect.disabled=false;}
  });
  tcpDisconnect.addEventListener('click',async()=>{try{await window.marauder.disconnect();tcpStatus.textContent='Not connected';updateBanner('disconnected');tcpMessage.textContent='Disconnected';tcpConnect.disabled=false;}catch(error){tcpMessage.textContent='Disconnect error: '+String(error.message).slice(0,300);}});
  usbRefresh.addEventListener('click',async()=>{
@@ -85,7 +93,7 @@ if(window.marauder?.connectTcp){
   if(!path){usbMessage.textContent='Find and select a serial device first.';return;}
   usbConnect.disabled=true;usbMessage.textContent='Opening serial port…';
   try{const result=await window.marauder.connectUsb({path});usbMessage.textContent=result.note;}
-  catch(error){updateBanner('disconnected');usbMessage.textContent='Connection failed: '+String(error.message).slice(0,300);usbConnect.disabled=false;}
+  catch(error){updateBanner('needs-attention');diagnosticError.textContent=String(error.message).slice(0,300);usbMessage.textContent='Connection failed: '+String(error.message).slice(0,300);usbConnect.disabled=false;}
  });
  usbDisconnect.addEventListener('click',async()=>{try{await window.marauder.disconnect();usbStatus.textContent='Not connected';updateBanner('disconnected');usbMessage.textContent='Disconnected';usbConnect.disabled=false;}catch(error){usbMessage.textContent='Disconnect error: '+String(error.message).slice(0,300);}});
 }
