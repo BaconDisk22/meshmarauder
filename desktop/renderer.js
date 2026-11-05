@@ -12,15 +12,21 @@ document.querySelector('#toggleDemo').addEventListener('click',()=>{
 const filter=document.querySelector('#packetFilter');const clearPackets=document.querySelector('#clearPackets');const packetList=document.querySelector('#packetList');
 function applyFilter(){const term=filter.value.trim().toLowerCase();for(const item of packetList.querySelectorAll('.packet'))item.hidden=!item.textContent.toLowerCase().includes(term);}
 filter.addEventListener('input',applyFilter);clearPackets.addEventListener('click',()=>{packetList.replaceChildren();});
+const connectionBanner=document.querySelector('#connectionBanner');
+function updateBanner(state){
+ const labels={'disconnected':'NO RADIO CONNECTED · DEMO AVAILABLE','connecting':'CONNECTING TO RADIO','transport-open':'TCP OPEN · HANDSHAKE PENDING','initializing':'TCP OPEN · HANDSHAKE PENDING','session-ready':'LIVE RADIO · SESSION READY'};
+ connectionBanner.textContent=labels[state]||'RADIO NEEDS ATTENTION';
+ connectionBanner.dataset.connectionState=state;
+}
 const tcpStatus=document.querySelector('#tcpStatus');
 const tcpMessage=document.querySelector('#tcpMessage');
 const tcpConnect=document.querySelector('#connectTcp');
 const tcpDisconnect=document.querySelector('#disconnectTcp');
 if(window.marauder?.connectTcp){
- window.marauder.onStatus(({state})=>{tcpStatus.textContent=state==='transport-open'?'TCP socket open — handshake pending':state.replace(/-/g,' ');tcpConnect.disabled=state==='connecting'||state==='transport-open';if(state==='disconnected'){tcpConnect.disabled=false;tcpMessage.textContent='Radio disconnected. Reconnect when ready.';}});
+ window.marauder.onStatus(({state})=>{updateBanner(state);tcpStatus.textContent=state==='transport-open'?'TCP socket open — handshake pending':state.replace(/-/g,' ');tcpConnect.disabled=state==='connecting'||state==='transport-open';if(state==='disconnected'){tcpConnect.disabled=false;tcpMessage.textContent='Radio disconnected. Reconnect when ready.';}});
  window.marauder.onError(message=>{tcpMessage.textContent='TCP error: '+message;});
  window.marauder.onBytes(({count})=>{tcpMessage.textContent='Received '+count+' transport bytes; awaiting Meshtastic configuration handshake.';});
- window.marauder.onSession?.(({state})=>{
+ window.marauder.onSession?.(({state})=>{updateBanner(state);
   if(state==='initializing')tcpStatus.textContent='TCP open — Meshtastic handshake in progress';
   else if(state==='session-ready')tcpStatus.textContent='Session ready — decoding live packets';
   else if(state==='disconnected'){tcpStatus.textContent='Not connected';tcpConnect.disabled=false;}
@@ -39,7 +45,7 @@ if(window.marauder?.connectTcp){
  tcpConnect.addEventListener('click',async()=>{
   tcpConnect.disabled=true;tcpMessage.textContent='Opening TCP socket…';
   try{const result=await window.marauder.connectTcp({host:document.querySelector('#tcpHost').value,port:Number(document.querySelector('#tcpPort').value)});tcpMessage.textContent=result.note;}
-  catch(error){tcpMessage.textContent='Connection failed: '+String(error.message).slice(0,300);tcpConnect.disabled=false;}
+  catch(error){updateBanner('disconnected');tcpMessage.textContent='Connection failed: '+String(error.message).slice(0,300);tcpConnect.disabled=false;}
  });
- tcpDisconnect.addEventListener('click',async()=>{try{await window.marauder.disconnect();tcpStatus.textContent='Not connected';tcpMessage.textContent='Disconnected';tcpConnect.disabled=false;}catch(error){tcpMessage.textContent='Disconnect error: '+String(error.message).slice(0,300);}});
+ tcpDisconnect.addEventListener('click',async()=>{try{await window.marauder.disconnect();tcpStatus.textContent='Not connected';updateBanner('disconnected');tcpMessage.textContent='Disconnected';tcpConnect.disabled=false;}catch(error){tcpMessage.textContent='Disconnect error: '+String(error.message).slice(0,300);}});
 }

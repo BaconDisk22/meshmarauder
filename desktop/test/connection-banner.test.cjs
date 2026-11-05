@@ -1,0 +1,3 @@
+const test=require('node:test');const assert=require('node:assert/strict');const fs=require('node:fs');const path=require('node:path');
+test('banner has accessible live status',()=>{const html=fs.readFileSync(path.join(__dirname,'../index.html'),'utf8');assert.match(html,/id="connectionBanner" role="status" aria-live="polite"/);});
+test('banner distinguishes TCP transport and verified session',()=>{const js=fs.readFileSync(path.join(__dirname,'../renderer.js'),'utf8');assert.match(js,/'transport-open':'TCP OPEN · HANDSHAKE PENDING'/);assert.match(js,/'session-ready':'LIVE RADIO · SESSION READY'/);assert.match(js,/updateBanner\(state\)/);});
