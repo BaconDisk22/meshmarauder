@@ -55,3 +55,17 @@ if(window.marauder?.connectTcp){
  });
  tcpDisconnect.addEventListener('click',async()=>{try{await window.marauder.disconnect();tcpStatus.textContent='Not connected';updateBanner('disconnected');tcpMessage.textContent='Disconnected';tcpConnect.disabled=false;}catch(error){tcpMessage.textContent='Disconnect error: '+String(error.message).slice(0,300);}});
 }
+
+const usbRefresh=document.querySelector('#refreshUsb');
+const usbPorts=document.querySelector('#usbPorts');
+const usbStatus=document.querySelector('#usbStatus');
+usbRefresh.addEventListener('click',async()=>{
+ usbRefresh.disabled=true;usbStatus.textContent='Searching for serial devices…';usbPorts.replaceChildren();
+ try{
+  const ports=await window.marauder.listUsbPorts();
+  const empty=document.createElement('option');empty.value='';empty.textContent='Select a device';usbPorts.append(empty);
+  for(const port of ports){const option=document.createElement('option');option.value=port.path;option.textContent=port.path+(port.manufacturer?' · '+port.manufacturer:'');usbPorts.append(option);}
+  usbStatus.textContent=ports.length+' serial device(s) found · Not connected';
+ }catch(error){usbStatus.textContent='Discovery failed: '+String(error.message).slice(0,160);}
+ finally{usbRefresh.disabled=false;}
+});
