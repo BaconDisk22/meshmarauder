@@ -37,3 +37,28 @@ The desktop is experimental. Green CI does not establish that a physical Meshtas
 - Validate packet inspection and safe handling of private information.
 - Audit bundled dependencies, GPL-3.0 attribution, signing and notarization.
 - Obtain explicit release approval; do not publish from development PRs.
+
+## Operator verification checklist (Intel Mac)
+
+The GitHub Actions desktop workflow runs automated checks and packages Intel x86_64 DMG/ZIP artifacts. It may also upload an actual Electron screenshot under `mesh-marauder-ui-screenshot`. A screenshot is a UI smoke-check, **not** proof that a radio connected.
+
+### TCP and USB acceptance checks
+
+- [ ] Launch the downloaded development build on a real Intel Mac; note macOS version.
+- [ ] Verify Wi-Fi/TCP host and port inputs accept a reachable authorized radio (default 4403).
+- [ ] Confirm the UI distinguishes transport-open from Meshtastic session-ready.
+- [ ] Confirm actual radio traffic appears as LIVE; demo entries remain DEMO / SIMULATED.
+- [ ] Check observed nodes and signal readings against received packet metadata; missing RSSI/SNR should display N/A.
+- [ ] Unplug or disconnect the radio, observe the diagnostic message, and verify manual reconnect works.
+- [ ] Test USB device discovery, connection, disconnect, and recovery on a supported serial radio.
+- [ ] Verify packet source filtering, counters and Clear work without leaking demo data into node observations.
+- [ ] Capture screenshots showing the overview, diagnostics and node list, removing any private node identifiers before publishing.
+
+### Screenshot publication policy
+
+1. Download the screenshot artifact from a successful Intel Mac Actions run, if capture succeeded.
+2. Inspect the PNG visually and confirm it shows the actual current app UI, not a blank window or an old version.
+3. Only then commit an approved screenshot under `docs/screenshots/` and reference that checked-in image from the root README.
+4. Do not present demonstration packet contents as actual radio traffic.
+
+A green build, valid screenshot and automated tests do not replace the physical radio acceptance checks above.
