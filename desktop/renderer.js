@@ -15,7 +15,7 @@ document.querySelector('#toggleDemo').addEventListener('click',()=>{
 document.querySelector('#exportPackets').addEventListener('click',()=>{
  const rows=[...document.querySelectorAll('#packetList .packet')].filter(row=>!row.hidden).map(row=>({source:row.dataset.source||'unknown',summary:row.textContent}));
  if(!rows.length)return;
- const csv=['source,summary',...rows.map(row=>[row.source,row.summary].map(value=>'"'+String(value).replace(/"/g,'""')+'"').join(','))].join('\r\n');
+ const csv=['source,summary',...rows.map(row=>[row.source,row.summary].map(value=>'"'+String(value).replace(/^[\s\u0000-\u001f]*[=+@-]/,match=>"'"+match).replace(/"/g,'""')+'"').join(','))].join('\r\n');
  const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
  const anchor=document.createElement('a');anchor.href=url;anchor.download='meshmarauder-visible-packets.csv';document.body.append(anchor);anchor.click();anchor.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
 });
