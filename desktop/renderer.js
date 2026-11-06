@@ -68,9 +68,9 @@ if(window.marauder?.connectTcp){
   else statusEl.textContent=state.replace(/-/g,' ');
  });
  window.marauder.onPacket?.(packet=>{
+  if(!packet||packet.variant!=='packet')return;
   observeNode(packet);
   const monitor=document.querySelector('#packetList');const empty=monitor.querySelector('.empty');if(empty)empty.remove();
-  if(packet.variant==='configCompleteId')return;
   livePackets++;document.querySelector('#lastLivePacket').textContent=new Date().toLocaleTimeString();refreshPacketStats();
   const row=document.createElement('div');row.className='packet';row.dataset.source='live';
   const label=document.createElement('strong');label.textContent='LIVE';
