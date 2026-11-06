@@ -1,4 +1,4 @@
-const {app,BrowserWindow,ipcMain}=require('electron');
+const {app,BrowserWindow,ipcMain,Menu}=require('electron');
 const path=require('node:path');
 const {TcpTransport}=require('./tcp-transport.cjs');
 const {UsbTransport}=require('./usb-transport.cjs');
@@ -70,6 +70,6 @@ ipcMain.handle('radio:usb-connect',async(event,options)=>{
  }catch(error){teardown();throw new Error(String(error.message).slice(0,300));}
 });
 ipcMain.handle('radio:disconnect',()=>{teardown();return {state:'disconnected'};});
-app.whenReady().then(()=>{createWindow();app.on('activate',()=>{if(BrowserWindow.getAllWindows().length===0)createWindow();});});
+app.whenReady().then(()=>{Menu.setApplicationMenu(Menu.buildFromTemplate([{label:'Mesh Marauder',submenu:[{role:'about'},{type:'separator'},{role:'hide'},{role:'hideOthers'},{role:'unhide'},{type:'separator'},{label:'Quit Mesh Marauder',accelerator:'CommandOrControl+Q',click:()=>app.quit()}]},{role:'editMenu'},{role:'viewMenu'},{role:'windowMenu'}]));createWindow();app.on('activate',()=>{if(BrowserWindow.getAllWindows().length===0)createWindow();});});
 app.on('window-all-closed',()=>{if(process.platform!=='darwin')app.quit();});
 app.on('before-quit',()=>{teardown();});
