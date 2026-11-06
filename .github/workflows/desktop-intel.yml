@@ -34,7 +34,17 @@ jobs:
           node --check renderer.js
           npm test
       - name: Package Intel Mac application
-        run: npm run build:mac
+        shell: bash
+        run: |
+          # DMG creation can intermittently fail when macOS reports a mounted image as busy.
+          for attempt in 1 2 3; do
+            if npm run build:mac; then exit 0; fi
+            if [ "$attempt" -eq 3 ]; then exit 1; fi
+            echo "Packaging attempt $attempt failed; cleaning stale disk images before retry."
+            hdiutil info || true
+            sleep 12
+            rm -rf dist
+          done
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
       - name: Verify packaged module manifest
