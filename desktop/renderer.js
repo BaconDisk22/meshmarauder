@@ -142,3 +142,13 @@ function observeNode(packet){
  }
  document.querySelector('#nodeCount').textContent=observedNodes.size+' observed node'+(observedNodes.size===1?'':'s');
 }
+
+// Export only live-observed node records; no demo packets enter this map.
+document.querySelector('#exportNodes').addEventListener('click',()=>{
+ if(!observedNodes.size)return;
+ const csv=['node_id,last_seen,snr_db,rssi_dbm,channel',...[...observedNodes.values()].map(node=>[
+  '!'+node.id.toString(16).padStart(8,'0'),node.lastSeen,node.snr??'',node.rssi??'',node.channel??''
+ ].map(value=>'"'+String(value).replace(/"/g,'""')+'"').join(','))].join('\r\n');
+ const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+ const anchor=document.createElement('a');anchor.href=url;anchor.download='meshmarauder-observed-nodes.csv';document.body.append(anchor);anchor.click();anchor.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+});
