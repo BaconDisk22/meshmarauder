@@ -62,3 +62,22 @@ The GitHub Actions desktop workflow runs automated checks and packages Intel x86
 4. Do not present demonstration packet contents as actual radio traffic.
 
 A green build, valid screenshot and automated tests do not replace the physical radio acceptance checks above.
+
+## Release candidate decision record
+
+**Current status: development builds only.** A passing workflow and an Intel DMG/ZIP artifact do not establish a signed, notarized or hardware-tested release.
+
+| Gate | Evidence required | Current status |
+| --- | --- | --- |
+| Automated desktop tests | Green Intel Mac Actions run for the exact candidate commit | Verify on candidate |
+| Intel packaging | x86_64 executable and both DMG/ZIP artifacts | Verify on candidate |
+| TCP radio handshake | Physical radio connects, configuration completes and LIVE packets arrive | Not verified |
+| Connection recovery | Unplug/disconnect, reconnect and clean quit without forced termination | Not verified |
+| USB transport | Real serial radio handshake and disconnect | Not verified |
+| BLE | Integrated and tested, or explicitly excluded from candidate scope | Not integrated |
+| Screenshot | Visually inspected screenshot from candidate build | Not verified |
+| Distribution | Signing/notarization decision and GPL attribution audit | Not verified |
+
+### Candidate handoff
+
+Record the exact Git commit SHA, macOS version, Meshtastic firmware, transport, screenshots and any errors when testing. Never publish a release automatically from pull-request workflows. The owner must explicitly approve publishing a candidate after checking the gates above.
