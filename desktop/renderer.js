@@ -12,6 +12,13 @@ document.querySelector('#toggleDemo').addEventListener('click',()=>{
  const row=document.createElement('div');row.className='packet';row.dataset.source='demo';const label=document.createElement('strong');label.textContent='DEMO / SIMULATED';row.append(label,document.createTextNode('  '+new Date().toLocaleTimeString()+' · sample mesh packet · No radio traffic'));monitor.prepend(row);applyFilter();while(monitor.children.length>200)monitor.lastChild.remove();
 });
 
+document.querySelector('#exportPackets').addEventListener('click',()=>{
+ const rows=[...document.querySelectorAll('#packetList .packet')].filter(row=>!row.hidden).map(row=>({source:row.dataset.source||'unknown',summary:row.textContent}));
+ if(!rows.length)return;
+ const csv=['source,summary',...rows.map(row=>[row.source,row.summary].map(value=>'"'+String(value).replace(/"/g,'""')+'"').join(','))].join('\r\n');
+ const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+ const anchor=document.createElement('a');anchor.href=url;anchor.download='meshmarauder-visible-packets.csv';document.body.append(anchor);anchor.click();anchor.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+});
 const sourceFilter=document.querySelector('#packetSourceFilter');
 const filter=document.querySelector('#packetFilter');const clearPackets=document.querySelector('#clearPackets');const packetList=document.querySelector('#packetList');
 function applyFilter(){const term=filter.value.trim().toLowerCase();for(const item of packetList.querySelectorAll('.packet'))item.hidden=!item.textContent.toLowerCase().includes(term)||(sourceFilter.value!=='all'&&item.dataset.source!==sourceFilter.value);}
